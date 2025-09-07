@@ -16,6 +16,7 @@ import (
 
 	"github.com/zeshi09/go_web_parser_agent/ent"
 	"github.com/zeshi09/go_web_parser_agent/ent/domain"
+	"github.com/zeshi09/go_web_parser_agent/ent/sociallink"
 	// "github.com/zeshi09/go_web_parser_agent/ent/sociallink"
 )
 
@@ -70,6 +71,25 @@ func CheckDomains(ctx context.Context, client *ent.Client) ([]*ent.Domain, error
 		return nil, fmt.Errorf("failed querying user: %w", err)
 	}
 	return d, nil
+}
+
+func CheckNewSocialLinks(ctx context.Context, client *ent.Client, cur Cursor) ([]*ent.SocialLink, error) {
+	q := client.SocialLink.
+		Query().
+		Where(
+			sociallink.Or(
+				sociallink.CreatedAt(cur.LastCreatedAt),
+				sociallink.And(
+					sociallink.CreatedAtGT(cur.LastCreatedAt),
+					sociallink.IDGT(cur.LastID),
+				),
+			),
+		).
+		Order(ent.Asc(sociallink.FieldCreatedAt),
+			ent.Asc(sociallink.FieldID),
+		).
+		Limit(PageSize)
+	return q.All(ctx)
 }
 
 func CheckNewDomains(ctx context.Context, client *ent.Client, cur Cursor) ([]*ent.Domain, error) {
