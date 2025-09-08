@@ -3,21 +3,14 @@ package storage
 import (
 	"context"
 	"fmt"
-
-	// "net/url"
 	"os"
-	// "strings"
 	"time"
-
-	// "entgo.io/ent/dialect"
-	// "entgo.io/ent/dialect/sql"
 
 	_ "github.com/lib/pq"
 
 	"github.com/zeshi09/go_web_parser_agent/ent"
 	"github.com/zeshi09/go_web_parser_agent/ent/domain"
 	"github.com/zeshi09/go_web_parser_agent/ent/sociallink"
-	// "github.com/zeshi09/go_web_parser_agent/ent/sociallink"
 )
 
 const PageSize = 500
@@ -36,13 +29,13 @@ type DatabaseConfig struct {
 	SSLMode  string
 }
 
-type SocialLinkService struct {
-	client *ent.Client
-}
+// type SocialLinkService struct {
+// 	client *ent.Client
+// }
 
-type DomainService struct {
-	client *ent.Client
-}
+// type DomainService struct {
+// 	client *ent.Client
+// }
 
 func LoadConfigFromEnv() *DatabaseConfig {
 	return &DatabaseConfig{
@@ -62,18 +55,10 @@ func (cfg *DatabaseConfig) DSN() string {
 	)
 }
 
-func CheckDomains(ctx context.Context, client *ent.Client) ([]*ent.Domain, error) {
-	d, err := client.Domain.
-		Query().
-		Select(domain.FieldLandingDomain).
-		All(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed querying user: %w", err)
-	}
-	return d, nil
-}
-
 func CheckNewSocialLinks(ctx context.Context, client *ent.Client, cur Cursor) ([]*ent.SocialLink, error) {
+	if err := client.Schema.Create(context.Background()); err != nil {
+		return nil, fmt.Errorf("failed creating schema: %w", err)
+	}
 	q := client.SocialLink.
 		Query().
 		Where(

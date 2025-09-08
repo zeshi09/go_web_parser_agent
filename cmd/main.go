@@ -33,7 +33,7 @@ func saveCursor(c *storage.Cursor) error {
 	return nil
 }
 
-func RunLoop(ctx context.Context, client *ent.Client, stateFile storage.Cursor, webhook string, interval time.Duration, sof bool) error {
+func RunLoopDomain(ctx context.Context, client *ent.Client, stateFile storage.Cursor, webhook string, interval time.Duration, sof bool) error {
 	cur, err := loadCursor(&Curs)
 	if err != nil {
 		return err
@@ -65,6 +65,38 @@ func RunLoop(ctx context.Context, client *ent.Client, stateFile storage.Cursor, 
 	}
 }
 
+func RunLoopLink(ctx context.Context, client *ent.Client, stateFile storage.Cursor, webhook string, interval time.Duration, sof bool) error {
+	cur, err := loadCursor(&Curs)
+	if err != nil {
+		return err
+	}
+
+	if err := agent.ScanAndNotifyLinks(ctx, client, &cur, webhook, sof); err != nil {
+		return err
+	}
+	if err := saveCursor(&cur); err != nil {
+		return err
+	}
+
+	t := time.NewTicker(interval)
+	defer t.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-t.C:
+			if err := agent.ScanAndNotifyLinks(ctx, client, &cur, webhook, true); err != nil {
+				log.Error().Err(err).Msg("periodic scan failed")
+				continue
+			}
+			if err := saveCursor(&cur); err != nil {
+				log.Error().Err(err).Msg("save cursor failed")
+			}
+		}
+	}
+}
+
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	err := godotenv.Load()
@@ -84,12 +116,25 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	stateFile := Curs
+	stateFileDomain := Curs
+	stateFileLink := Curs
+
 	interval := 30 * time.Second
 	sendOnFirst := false
 
-	if err := RunLoop(ctx, client, stateFile, webhook, interval, sendOnFirst); err != nil {
-		log.Error().Err(err).Msg("loop failed")
-	}
+	go func() error {
+		if err := RunLoopDomain(ctx, client, stateFileDomain, webhook, interval, sendOnFirst); err != nil {
+			log.Error().Err(err).Msg("loop failed")
+			return err
+		}
+		return nil
+	}()
+	go func() error {
+		if err := RunLoopLink(ctx, client, stateFileLink, webhook, interval, sendOnFirst); err != nil {
+			log.Error().Err(err).Msg("loop failed")
+		}
+		return nil
+	}()
 
+	<-ctx.Done()
 }
