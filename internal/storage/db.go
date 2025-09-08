@@ -64,9 +64,9 @@ func CheckNewSocialLinks(ctx context.Context, client *ent.Client, cur Cursor) ([
 			Query().
 			Where(
 				sociallink.Or(
-					sociallink.CreatedAt(cur.LastCreatedAt),
+					sociallink.CreatedAtGT(cur.LastCreatedAt),
 					sociallink.And(
-						sociallink.CreatedAtGT(cur.LastCreatedAt),
+						sociallink.CreatedAtEQ(cur.LastCreatedAt),
 						sociallink.IDGT(cur.LastID),
 					),
 				),

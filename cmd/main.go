@@ -104,8 +104,6 @@ func RunLoopLink(ctx context.Context, client *ent.Client, webhook string, interv
 		return fmt.Errorf("failed to save link cursor: %w", err)
 	}
 
-	log.Debug().Msg("мы в initial scan")
-
 	// заводим тикер для лупа
 	t := time.NewTicker(interval)
 	defer t.Stop()
@@ -123,7 +121,6 @@ func RunLoopLink(ctx context.Context, client *ent.Client, webhook string, interv
 			if err := saveCursor(cur, LinkStateFile); err != nil {
 				log.Error().Err(err).Msg("save cursor failed")
 			}
-			log.Debug().Msg("мы в ticker scan")
 		}
 	}
 }
