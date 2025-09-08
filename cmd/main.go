@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,39 +13,62 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeshi09/go_web_parser_agent/ent"
 
-	// "github.com/zeshi09/go_web_parser_agent/ent/domain"
 	"github.com/joho/godotenv"
 	"github.com/zeshi09/go_web_parser_agent/internal/agent"
 	"github.com/zeshi09/go_web_parser_agent/internal/storage"
 )
 
-type ForMM struct {
-	Id     int    `json:"id"`
-	Domain string `json:"domain"`
-}
+const (
+	DomainStateFile = "domain_cursor.json"
+	LinkStateFile   = "link_cursor.json"
+)
+
+// type ForMM struct {
+// 	Id     int    `json:"id"`
+// 	Domain string `json:"domain"`
+// }
 
 var Curs storage.Cursor
 
-func loadCursor(c *storage.Cursor) (storage.Cursor, error) {
-	return *c, nil
+func loadCursor(filename string) (storage.Cursor, error) {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return storage.Cursor{
+				LastCreatedAt: time.Time{},
+				LastID:        0,
+			}, nil
+		}
+		return storage.Cursor{}, err
+	}
+
+	var cursor storage.Cursor
+	if err := json.Unmarshal(data, &cursor); err != nil {
+		return storage.Cursor{}, err
+	}
+
+	return cursor, nil
 }
 
-func saveCursor(c *storage.Cursor) error {
-	Curs = *c
-	return nil
-}
-
-func RunLoopDomain(ctx context.Context, client *ent.Client, stateFile storage.Cursor, webhook string, interval time.Duration, sof bool) error {
-	cur, err := loadCursor(&Curs)
+func saveCursor(cursor storage.Cursor, filename string) error {
+	data, err := json.Marshal(cursor)
 	if err != nil {
 		return err
 	}
+	return os.WriteFile(filename, data, 0644)
+}
+
+func RunLoopDomain(ctx context.Context, client *ent.Client, webhook string, interval time.Duration, sof bool) error {
+	cur, err := loadCursor(DomainStateFile)
+	if err != nil {
+		return fmt.Errorf("failed to load domain cursor: %w", err)
+	}
 
 	if err := agent.ScanAndNotifyDomains(ctx, client, &cur, webhook, sof); err != nil {
-		return err
+		return fmt.Errorf("initial domain scan failed: %w", err)
 	}
-	if err := saveCursor(&cur); err != nil {
-		return err
+	if err := saveCursor(cur, DomainStateFile); err != nil {
+		return fmt.Errorf("failed to save domain cursor: %w", err)
 	}
 
 	t := time.NewTicker(interval)
@@ -58,24 +83,24 @@ func RunLoopDomain(ctx context.Context, client *ent.Client, stateFile storage.Cu
 				log.Error().Err(err).Msg("periodic scan failed")
 				continue
 			}
-			if err := saveCursor(&cur); err != nil {
+			if err := saveCursor(cur, DomainStateFile); err != nil {
 				log.Error().Err(err).Msg("save cursor failed")
 			}
 		}
 	}
 }
 
-func RunLoopLink(ctx context.Context, client *ent.Client, stateFile storage.Cursor, webhook string, interval time.Duration, sof bool) error {
-	cur, err := loadCursor(&Curs)
+func RunLoopLink(ctx context.Context, client *ent.Client, webhook string, interval time.Duration, sof bool) error {
+	cur, err := loadCursor(LinkStateFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load link cursor: %w", err)
 	}
 
 	if err := agent.ScanAndNotifyLinks(ctx, client, &cur, webhook, sof); err != nil {
-		return err
+		return fmt.Errorf("initial link scan failed: %w", err)
 	}
-	if err := saveCursor(&cur); err != nil {
-		return err
+	if err := saveCursor(cur, LinkStateFile); err != nil {
+		return fmt.Errorf("failed to save link cursor: %w", err)
 	}
 
 	t := time.NewTicker(interval)
@@ -90,7 +115,7 @@ func RunLoopLink(ctx context.Context, client *ent.Client, stateFile storage.Curs
 				log.Error().Err(err).Msg("periodic scan failed")
 				continue
 			}
-			if err := saveCursor(&cur); err != nil {
+			if err := saveCursor(cur, LinkStateFile); err != nil {
 				log.Error().Err(err).Msg("save cursor failed")
 			}
 		}
@@ -105,36 +130,44 @@ func main() {
 	}
 
 	webhook := os.Getenv("MM_WEBHOOK")
+	if webhook == "" {
+		log.Fatal().Msg("MM_WEBHOOK env var is required")
+	}
 
 	client, err := ent.Open("postgres", storage.LoadConfigFromEnv().DSN())
+
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to create db client")
 	}
-
 	defer client.Close()
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	stateFileDomain := Curs
-	stateFileLink := Curs
-
 	interval := 30 * time.Second
 	sendOnFirst := false
 
-	go func() error {
-		if err := RunLoopDomain(ctx, client, stateFileDomain, webhook, interval, sendOnFirst); err != nil {
+	errCh := make(chan error, 2)
+
+	go func() {
+		if err := RunLoopDomain(ctx, client, webhook, interval, sendOnFirst); err != nil {
 			log.Error().Err(err).Msg("loop failed")
-			return err
+			errCh <- err
 		}
-		return nil
 	}()
-	go func() error {
-		if err := RunLoopLink(ctx, client, stateFileLink, webhook, interval, sendOnFirst); err != nil {
+	go func() {
+		if err := RunLoopLink(ctx, client, webhook, interval, sendOnFirst); err != nil {
 			log.Error().Err(err).Msg("loop failed")
+			errCh <- err
 		}
-		return nil
 	}()
 
-	<-ctx.Done()
+	select {
+	case <-ctx.Done():
+		log.Info().Msg("shutting down...")
+	case err := <-errCh:
+		log.Error().Err(err).Msg("app err")
+		cancel()
+	}
+
 }

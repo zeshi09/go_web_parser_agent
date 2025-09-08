@@ -13,7 +13,7 @@ import (
 	"github.com/zeshi09/go_web_parser_agent/ent/sociallink"
 )
 
-const PageSize = 500
+const PageSize = 1000
 
 type Cursor struct {
 	LastCreatedAt time.Time `json:"last_created_at"`
@@ -56,43 +56,51 @@ func (cfg *DatabaseConfig) DSN() string {
 }
 
 func CheckNewSocialLinks(ctx context.Context, client *ent.Client, cur Cursor) ([]*ent.SocialLink, error) {
-	if err := client.Schema.Create(context.Background()); err != nil {
-		return nil, fmt.Errorf("failed creating schema: %w", err)
-	}
-	q := client.SocialLink.
-		Query().
-		Where(
-			sociallink.Or(
-				sociallink.CreatedAt(cur.LastCreatedAt),
-				sociallink.And(
-					sociallink.CreatedAtGT(cur.LastCreatedAt),
-					sociallink.IDGT(cur.LastID),
+	var q *ent.SocialLinkQuery
+	if cur.LastCreatedAt.IsZero() && cur.LastID == 0 {
+		q = client.SocialLink.Query()
+	} else {
+		q = client.SocialLink.
+			Query().
+			Where(
+				sociallink.Or(
+					sociallink.CreatedAt(cur.LastCreatedAt),
+					sociallink.And(
+						sociallink.CreatedAtGT(cur.LastCreatedAt),
+						sociallink.IDGT(cur.LastID),
+					),
 				),
-			),
-		).
-		Order(ent.Asc(sociallink.FieldCreatedAt),
-			ent.Asc(sociallink.FieldID),
-		).
-		Limit(PageSize)
+			).
+			Order(ent.Asc(sociallink.FieldCreatedAt),
+				ent.Asc(sociallink.FieldID),
+			).
+			Limit(PageSize)
+	}
+
 	return q.All(ctx)
 }
 
 func CheckNewDomains(ctx context.Context, client *ent.Client, cur Cursor) ([]*ent.Domain, error) {
-	q := client.Domain.
-		Query().
-		Where(
-			domain.Or(
-				domain.CreatedAtGT(cur.LastCreatedAt),
-				domain.And(
-					domain.CreatedAtEQ(cur.LastCreatedAt),
-					domain.IDGT(cur.LastID),
+	var q *ent.DomainQuery
+	if cur.LastCreatedAt.IsZero() && cur.LastID == 0 {
+		q = client.Domain.Query()
+	} else {
+		q = client.Domain.
+			Query().
+			Where(
+				domain.Or(
+					domain.CreatedAtGT(cur.LastCreatedAt),
+					domain.And(
+						domain.CreatedAtEQ(cur.LastCreatedAt),
+						domain.IDGT(cur.LastID),
+					),
 				),
-			),
-		).
-		Order(
-			ent.Asc(domain.FieldCreatedAt),
-			ent.Asc(domain.FieldID),
-		).
-		Limit(PageSize)
+			).
+			Order(
+				ent.Asc(domain.FieldCreatedAt),
+				ent.Asc(domain.FieldID),
+			).
+			Limit(PageSize)
+	}
 	return q.All(ctx)
 }
