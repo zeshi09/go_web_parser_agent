@@ -18,6 +18,8 @@ func (SocialLink) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("url").
 			Comment("Full social media URL"),
+		field.String("page_url").
+			Comment("Page URL where link was found"),
 		field.String("domain").
 			Optional().
 			Comment("Social media domain (t.me, vk.com, etc.)"),
@@ -39,6 +41,8 @@ func (SocialLink) Indexes() []ent.Index {
 		index.Fields("url").Unique(),
 		// Индекс по домену для быстрого поиска
 		index.Fields("domain"),
+		// Индекс по pageurl
+		index.Fields("page_url"),
 		// Составной индекс
 		index.Fields("domain", "created_at"),
 	}

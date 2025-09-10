@@ -50,6 +50,9 @@ func NotifyMMLinks(webhook string, links []*ent.SocialLink) error {
 	for _, l := range links {
 		b.WriteString("- ")
 		b.WriteString(l.URL)
+		b.WriteString("   (")
+		b.WriteString(l.PageURL)
+		b.WriteString(")")
 		b.WriteString("\n")
 	}
 	payload := map[string]string{
