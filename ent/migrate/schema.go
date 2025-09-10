@@ -31,6 +31,7 @@ var (
 	SocialLinksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "url", Type: field.TypeString},
+		{Name: "page_url", Type: field.TypeString},
 		{Name: "domain", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 	}
@@ -48,12 +49,17 @@ var (
 			{
 				Name:    "sociallink_domain",
 				Unique:  false,
+				Columns: []*schema.Column{SocialLinksColumns[3]},
+			},
+			{
+				Name:    "sociallink_page_url",
+				Unique:  false,
 				Columns: []*schema.Column{SocialLinksColumns[2]},
 			},
 			{
 				Name:    "sociallink_domain_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{SocialLinksColumns[2], SocialLinksColumns[3]},
+				Columns: []*schema.Column{SocialLinksColumns[3], SocialLinksColumns[4]},
 			},
 		},
 	}

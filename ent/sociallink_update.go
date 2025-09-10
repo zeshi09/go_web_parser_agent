@@ -42,6 +42,20 @@ func (_u *SocialLinkUpdate) SetNillableURL(v *string) *SocialLinkUpdate {
 	return _u
 }
 
+// SetPageURL sets the "page_url" field.
+func (_u *SocialLinkUpdate) SetPageURL(v string) *SocialLinkUpdate {
+	_u.mutation.SetPageURL(v)
+	return _u
+}
+
+// SetNillablePageURL sets the "page_url" field if the given value is not nil.
+func (_u *SocialLinkUpdate) SetNillablePageURL(v *string) *SocialLinkUpdate {
+	if v != nil {
+		_u.SetPageURL(*v)
+	}
+	return _u
+}
+
 // SetDomain sets the "domain" field.
 func (_u *SocialLinkUpdate) SetDomain(v string) *SocialLinkUpdate {
 	_u.mutation.SetDomain(v)
@@ -120,6 +134,9 @@ func (_u *SocialLinkUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	if value, ok := _u.mutation.URL(); ok {
 		_spec.SetField(sociallink.FieldURL, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.PageURL(); ok {
+		_spec.SetField(sociallink.FieldPageURL, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Domain(); ok {
 		_spec.SetField(sociallink.FieldDomain, field.TypeString, value)
 	}
@@ -159,6 +176,20 @@ func (_u *SocialLinkUpdateOne) SetURL(v string) *SocialLinkUpdateOne {
 func (_u *SocialLinkUpdateOne) SetNillableURL(v *string) *SocialLinkUpdateOne {
 	if v != nil {
 		_u.SetURL(*v)
+	}
+	return _u
+}
+
+// SetPageURL sets the "page_url" field.
+func (_u *SocialLinkUpdateOne) SetPageURL(v string) *SocialLinkUpdateOne {
+	_u.mutation.SetPageURL(v)
+	return _u
+}
+
+// SetNillablePageURL sets the "page_url" field if the given value is not nil.
+func (_u *SocialLinkUpdateOne) SetNillablePageURL(v *string) *SocialLinkUpdateOne {
+	if v != nil {
+		_u.SetPageURL(*v)
 	}
 	return _u
 }
@@ -270,6 +301,9 @@ func (_u *SocialLinkUpdateOne) sqlSave(ctx context.Context) (_node *SocialLink, 
 	}
 	if value, ok := _u.mutation.URL(); ok {
 		_spec.SetField(sociallink.FieldURL, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.PageURL(); ok {
+		_spec.SetField(sociallink.FieldPageURL, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Domain(); ok {
 		_spec.SetField(sociallink.FieldDomain, field.TypeString, value)

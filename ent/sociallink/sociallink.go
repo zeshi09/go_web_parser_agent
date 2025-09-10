@@ -15,6 +15,8 @@ const (
 	FieldID = "id"
 	// FieldURL holds the string denoting the url field in the database.
 	FieldURL = "url"
+	// FieldPageURL holds the string denoting the page_url field in the database.
+	FieldPageURL = "page_url"
 	// FieldDomain holds the string denoting the domain field in the database.
 	FieldDomain = "domain"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -27,6 +29,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldURL,
+	FieldPageURL,
 	FieldDomain,
 	FieldCreatedAt,
 }
@@ -57,6 +60,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByURL orders the results by the url field.
 func ByURL(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldURL, opts...).ToFunc()
+}
+
+// ByPageURL orders the results by the page_url field.
+func ByPageURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPageURL, opts...).ToFunc()
 }
 
 // ByDomain orders the results by the domain field.

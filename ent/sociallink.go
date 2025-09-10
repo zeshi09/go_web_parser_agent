@@ -19,6 +19,8 @@ type SocialLink struct {
 	ID int `json:"id,omitempty"`
 	// Full social media URL
 	URL string `json:"url,omitempty"`
+	// Page URL where link was found
+	PageURL string `json:"page_url,omitempty"`
 	// Social media domain (t.me, vk.com, etc.)
 	Domain string `json:"domain,omitempty"`
 	// When this link was discovered
@@ -33,7 +35,7 @@ func (*SocialLink) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case sociallink.FieldID:
 			values[i] = new(sql.NullInt64)
-		case sociallink.FieldURL, sociallink.FieldDomain:
+		case sociallink.FieldURL, sociallink.FieldPageURL, sociallink.FieldDomain:
 			values[i] = new(sql.NullString)
 		case sociallink.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -63,6 +65,12 @@ func (_m *SocialLink) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field url", values[i])
 			} else if value.Valid {
 				_m.URL = value.String
+			}
+		case sociallink.FieldPageURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field page_url", values[i])
+			} else if value.Valid {
+				_m.PageURL = value.String
 			}
 		case sociallink.FieldDomain:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -114,6 +122,9 @@ func (_m *SocialLink) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("url=")
 	builder.WriteString(_m.URL)
+	builder.WriteString(", ")
+	builder.WriteString("page_url=")
+	builder.WriteString(_m.PageURL)
 	builder.WriteString(", ")
 	builder.WriteString("domain=")
 	builder.WriteString(_m.Domain)

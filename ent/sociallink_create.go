@@ -26,6 +26,12 @@ func (_c *SocialLinkCreate) SetURL(v string) *SocialLinkCreate {
 	return _c
 }
 
+// SetPageURL sets the "page_url" field.
+func (_c *SocialLinkCreate) SetPageURL(v string) *SocialLinkCreate {
+	_c.mutation.SetPageURL(v)
+	return _c
+}
+
 // SetDomain sets the "domain" field.
 func (_c *SocialLinkCreate) SetDomain(v string) *SocialLinkCreate {
 	_c.mutation.SetDomain(v)
@@ -100,6 +106,9 @@ func (_c *SocialLinkCreate) check() error {
 	if _, ok := _c.mutation.URL(); !ok {
 		return &ValidationError{Name: "url", err: errors.New(`ent: missing required field "SocialLink.url"`)}
 	}
+	if _, ok := _c.mutation.PageURL(); !ok {
+		return &ValidationError{Name: "page_url", err: errors.New(`ent: missing required field "SocialLink.page_url"`)}
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "SocialLink.created_at"`)}
 	}
@@ -132,6 +141,10 @@ func (_c *SocialLinkCreate) createSpec() (*SocialLink, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.URL(); ok {
 		_spec.SetField(sociallink.FieldURL, field.TypeString, value)
 		_node.URL = value
+	}
+	if value, ok := _c.mutation.PageURL(); ok {
+		_spec.SetField(sociallink.FieldPageURL, field.TypeString, value)
+		_node.PageURL = value
 	}
 	if value, ok := _c.mutation.Domain(); ok {
 		_spec.SetField(sociallink.FieldDomain, field.TypeString, value)

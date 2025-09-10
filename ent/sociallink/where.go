@@ -59,6 +59,11 @@ func URL(v string) predicate.SocialLink {
 	return predicate.SocialLink(sql.FieldEQ(FieldURL, v))
 }
 
+// PageURL applies equality check predicate on the "page_url" field. It's identical to PageURLEQ.
+func PageURL(v string) predicate.SocialLink {
+	return predicate.SocialLink(sql.FieldEQ(FieldPageURL, v))
+}
+
 // Domain applies equality check predicate on the "domain" field. It's identical to DomainEQ.
 func Domain(v string) predicate.SocialLink {
 	return predicate.SocialLink(sql.FieldEQ(FieldDomain, v))
@@ -132,6 +137,71 @@ func URLEqualFold(v string) predicate.SocialLink {
 // URLContainsFold applies the ContainsFold predicate on the "url" field.
 func URLContainsFold(v string) predicate.SocialLink {
 	return predicate.SocialLink(sql.FieldContainsFold(FieldURL, v))
+}
+
+// PageURLEQ applies the EQ predicate on the "page_url" field.
+func PageURLEQ(v string) predicate.SocialLink {
+	return predicate.SocialLink(sql.FieldEQ(FieldPageURL, v))
+}
+
+// PageURLNEQ applies the NEQ predicate on the "page_url" field.
+func PageURLNEQ(v string) predicate.SocialLink {
+	return predicate.SocialLink(sql.FieldNEQ(FieldPageURL, v))
+}
+
+// PageURLIn applies the In predicate on the "page_url" field.
+func PageURLIn(vs ...string) predicate.SocialLink {
+	return predicate.SocialLink(sql.FieldIn(FieldPageURL, vs...))
+}
+
+// PageURLNotIn applies the NotIn predicate on the "page_url" field.
+func PageURLNotIn(vs ...string) predicate.SocialLink {
+	return predicate.SocialLink(sql.FieldNotIn(FieldPageURL, vs...))
+}
+
+// PageURLGT applies the GT predicate on the "page_url" field.
+func PageURLGT(v string) predicate.SocialLink {
+	return predicate.SocialLink(sql.FieldGT(FieldPageURL, v))
+}
+
+// PageURLGTE applies the GTE predicate on the "page_url" field.
+func PageURLGTE(v string) predicate.SocialLink {
+	return predicate.SocialLink(sql.FieldGTE(FieldPageURL, v))
+}
+
+// PageURLLT applies the LT predicate on the "page_url" field.
+func PageURLLT(v string) predicate.SocialLink {
+	return predicate.SocialLink(sql.FieldLT(FieldPageURL, v))
+}
+
+// PageURLLTE applies the LTE predicate on the "page_url" field.
+func PageURLLTE(v string) predicate.SocialLink {
+	return predicate.SocialLink(sql.FieldLTE(FieldPageURL, v))
+}
+
+// PageURLContains applies the Contains predicate on the "page_url" field.
+func PageURLContains(v string) predicate.SocialLink {
+	return predicate.SocialLink(sql.FieldContains(FieldPageURL, v))
+}
+
+// PageURLHasPrefix applies the HasPrefix predicate on the "page_url" field.
+func PageURLHasPrefix(v string) predicate.SocialLink {
+	return predicate.SocialLink(sql.FieldHasPrefix(FieldPageURL, v))
+}
+
+// PageURLHasSuffix applies the HasSuffix predicate on the "page_url" field.
+func PageURLHasSuffix(v string) predicate.SocialLink {
+	return predicate.SocialLink(sql.FieldHasSuffix(FieldPageURL, v))
+}
+
+// PageURLEqualFold applies the EqualFold predicate on the "page_url" field.
+func PageURLEqualFold(v string) predicate.SocialLink {
+	return predicate.SocialLink(sql.FieldEqualFold(FieldPageURL, v))
+}
+
+// PageURLContainsFold applies the ContainsFold predicate on the "page_url" field.
+func PageURLContainsFold(v string) predicate.SocialLink {
+	return predicate.SocialLink(sql.FieldContainsFold(FieldPageURL, v))
 }
 
 // DomainEQ applies the EQ predicate on the "domain" field.

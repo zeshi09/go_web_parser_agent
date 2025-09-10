@@ -416,6 +416,7 @@ type SocialLinkMutation struct {
 	typ           string
 	id            *int
 	url           *string
+	page_url      *string
 	domain        *string
 	created_at    *time.Time
 	clearedFields map[string]struct{}
@@ -558,6 +559,42 @@ func (m *SocialLinkMutation) ResetURL() {
 	m.url = nil
 }
 
+// SetPageURL sets the "page_url" field.
+func (m *SocialLinkMutation) SetPageURL(s string) {
+	m.page_url = &s
+}
+
+// PageURL returns the value of the "page_url" field in the mutation.
+func (m *SocialLinkMutation) PageURL() (r string, exists bool) {
+	v := m.page_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPageURL returns the old "page_url" field's value of the SocialLink entity.
+// If the SocialLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SocialLinkMutation) OldPageURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPageURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPageURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPageURL: %w", err)
+	}
+	return oldValue.PageURL, nil
+}
+
+// ResetPageURL resets all changes to the "page_url" field.
+func (m *SocialLinkMutation) ResetPageURL() {
+	m.page_url = nil
+}
+
 // SetDomain sets the "domain" field.
 func (m *SocialLinkMutation) SetDomain(s string) {
 	m.domain = &s
@@ -677,9 +714,12 @@ func (m *SocialLinkMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SocialLinkMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.url != nil {
 		fields = append(fields, sociallink.FieldURL)
+	}
+	if m.page_url != nil {
+		fields = append(fields, sociallink.FieldPageURL)
 	}
 	if m.domain != nil {
 		fields = append(fields, sociallink.FieldDomain)
@@ -697,6 +737,8 @@ func (m *SocialLinkMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case sociallink.FieldURL:
 		return m.URL()
+	case sociallink.FieldPageURL:
+		return m.PageURL()
 	case sociallink.FieldDomain:
 		return m.Domain()
 	case sociallink.FieldCreatedAt:
@@ -712,6 +754,8 @@ func (m *SocialLinkMutation) OldField(ctx context.Context, name string) (ent.Val
 	switch name {
 	case sociallink.FieldURL:
 		return m.OldURL(ctx)
+	case sociallink.FieldPageURL:
+		return m.OldPageURL(ctx)
 	case sociallink.FieldDomain:
 		return m.OldDomain(ctx)
 	case sociallink.FieldCreatedAt:
@@ -731,6 +775,13 @@ func (m *SocialLinkMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetURL(v)
+		return nil
+	case sociallink.FieldPageURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPageURL(v)
 		return nil
 	case sociallink.FieldDomain:
 		v, ok := value.(string)
@@ -806,6 +857,9 @@ func (m *SocialLinkMutation) ResetField(name string) error {
 	switch name {
 	case sociallink.FieldURL:
 		m.ResetURL()
+		return nil
+	case sociallink.FieldPageURL:
+		m.ResetPageURL()
 		return nil
 	case sociallink.FieldDomain:
 		m.ResetDomain()
